@@ -1,4 +1,4 @@
-/** @type {import('tailwindcss').Config} */
+﻿/** @type {import('tailwindcss').Config} */
 export default {
   content: [
     "./index.html",
@@ -8,12 +8,12 @@ export default {
     extend: {
       colors: {
         spotnicik: {
-          primary: '#0052CC',    // Azul principal
-          cyan: '#00D4FF',       // Cyan vibrant
-          gold: '#FFB700',       // Amarelo/Ouro
-          pink: '#FF006E',       // Rosa/Magenta
-          dark: '#0A1828',       // Azul escuro
-          light: '#F5F5F5',      // Cinza claro
+          primary: '#0052CC',
+          cyan: '#00D4FF',
+          gold: '#FFB700',
+          pink: '#FF006E',
+          dark: '#0A1828',
+          light: '#F5F5F5',
         },
       },
       fontFamily: {
