@@ -6,7 +6,7 @@ export default function ResetPassword() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState('form'); // form | success | error
+  const [status, setStatus] = useState('form'); // form | success
   const [error, setError] = useState(null);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -32,9 +32,20 @@ export default function ResetPassword() {
       return;
     }
 
+    if (!/[0-9]/.test(password)) {
+      setError('A senha deve conter ao menos um número.');
+      return;
+    }
+
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      setError('A senha deve conter ao menos um caractere especial.');
+      return;
+    }
+
     setLoading(true);
     try {
-      await api.post('/api/auth/reset-password', { token, password });
+      // O backend espera o campo "newPassword"
+      await api.post('/api/auth/reset-password', { token, newPassword: password });
       setStatus('success');
       setTimeout(() => navigate('/login'), 3000);
     } catch (err) {
@@ -83,7 +94,7 @@ export default function ResetPassword() {
                   required
                 />
                 <p className="text-xs text-spotnicik-dark mt-1">
-                  Mínimo 8 caracteres
+                  Mínimo 8 caracteres, com ao menos um número e um caractere especial
                 </p>
               </div>
 
