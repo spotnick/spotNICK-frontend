@@ -14,11 +14,14 @@ export default function Login() {
     setLoading(true);
     const result = await login(email, password);
     setLoading(false);
-    
+
     if (result.success) {
       navigate('/dashboard');
     }
   };
+
+  // Detecta se o erro é de email não verificado, para mostrar o link de reenvio
+  const emailNotVerified = error && error.toLowerCase().includes('verific');
 
   return (
     <div className="min-h-screen bg-spotnicik-light flex items-center justify-center px-4">
@@ -31,6 +34,13 @@ export default function Login() {
         {error && (
           <div className="bg-red-100 text-red-700 p-4 rounded-lg mb-6">
             {error}
+            {emailNotVerified && (
+              <div className="mt-2">
+                <Link to="/resend-verification" className="text-spotnicik-primary font-medium underline">
+                  Reenviar e-mail de verificação
+                </Link>
+              </div>
+            )}
           </div>
         )}
 
@@ -50,9 +60,14 @@ export default function Login() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-spotnicik-dark mb-1">
-              Senha
-            </label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-sm font-medium text-spotnicik-dark">
+                Senha
+              </label>
+              <Link to="/forgot-password" className="text-xs text-spotnicik-cyan hover:underline">
+                Esqueci minha senha
+              </Link>
+            </div>
             <input
               type="password"
               value={password}
@@ -72,11 +87,17 @@ export default function Login() {
           </button>
         </form>
 
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center space-y-2">
           <p className="text-spotnicik-dark">
             Não tem conta?{' '}
             <Link to="/register" className="text-spotnicik-cyan font-medium hover:underline">
               Cadastre-se
+            </Link>
+          </p>
+          <p className="text-spotnicik-dark text-sm">
+            Não recebeu o e-mail de verificação?{' '}
+            <Link to="/resend-verification" className="text-spotnicik-cyan font-medium hover:underline">
+              Reenviar
             </Link>
           </p>
         </div>
