@@ -8,6 +8,7 @@ export default function Pagamentos() {
   const [estimate, setEstimate] = useState(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(null);
+  const [copied, setCopied] = useState('');
 
   const pricing = {
     hourly: { label: 'Por Hora', value: 1.00 },
@@ -26,7 +27,7 @@ export default function Pagamentos() {
       });
       setEstimate(data);
     } catch (err) {
-      alert('Erro ao calcular: ' + err.response?.data?.error);
+      alert('Erro ao calcular: ' + (err.response?.data?.error || err.message));
     }
   };
 
@@ -42,44 +43,100 @@ export default function Pagamentos() {
       });
       setSuccess(data);
     } catch (err) {
-      alert('Erro ao processar pagamento: ' + err.response?.data?.error);
+      alert('Erro ao processar pagamento: ' + (err.response?.data?.error || err.message));
     } finally {
       setLoading(false);
     }
   };
 
+  const copyToClipboard = (text, label) => {
+    navigator.clipboard.writeText(text);
+    setCopied(label);
+    setTimeout(() => setCopied(''), 2000);
+  };
+
   if (success) {
     return (
       <div className="bg-white rounded-lg shadow-lg p-8 max-w-md mx-auto text-center">
-        <h2 className="text-2xl font-bold text-spotnicik-primary mb-4">✅ Pagamento Criado!</h2>
+        <h2 className="text-2xl font-bold text-spotnicik-primary mb-4">✅ Cobrança Criada!</h2>
         <p className="text-spotnicik-dark mb-6">
-          Seu pagamento de <strong>R$ {success.value.toFixed(2)}</strong> foi criado com sucesso!
+          Valor: <strong>R$ {Number(success.value).toFixed(2)}</strong>
         </p>
-        
+
+        {/* PIX */}
         {success.billing_type === 'PIX' && (
           <div className="bg-spotnicik-light p-6 rounded-lg mb-6">
-            <p className="text-sm text-spotnicik-dark mb-2">Código PIX:</p>
-            <code className="text-xs bg-white p-3 rounded block break-all mb-4">
-              {success.pix_copy}
-            </code>
             {success.pix_qr_code && (
-              <img src={`data:image/png;base64,${success.pix_qr_code}`} alt="QR Code PIX" className="w-48 h-48 mx-auto" />
+              <img
+                src={`data:image/png;base64,${success.pix_qr_code}`}
+                alt="QR Code PIX"
+                className="w-48 h-48 mx-auto mb-4"
+              />
+            )}
+            {success.pix_copy && (
+              <>
+                <p className="text-sm text-spotnicik-dark mb-2">PIX copia e cola:</p>
+                <code className="text-xs bg-white p-3 rounded block break-all mb-3">
+                  {success.pix_copy}
+                </code>
+                <button
+                  onClick={() => copyToClipboard(success.pix_copy, 'pix')}
+                  className="w-full bg-spotnicik-cyan text-spotnicik-dark py-2 rounded-lg font-medium hover:bg-cyan-400 transition"
+                >
+                  {copied === 'pix' ? '✓ Copiado!' : 'Copiar código PIX'}
+                </button>
+              </>
             )}
           </div>
         )}
 
+        {/* BOLETO */}
         {success.billing_type === 'BOLETO' && (
           <div className="bg-spotnicik-light p-6 rounded-lg mb-6">
-            <p className="text-sm text-spotnicik-dark mb-2">Linha Digitável:</p>
-            <code className="text-xs bg-white p-3 rounded block break-all">
-              {success.boleto_line}
-            </code>
+            {success.boleto_url && (
+              <a
+                href={success.boleto_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full bg-spotnicik-primary text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition mb-4"
+              >
+                📄 Abrir / Imprimir Boleto (PDF)
+              </a>
+            )}
+            {success.boleto_line && (
+              <>
+                <p className="text-sm text-spotnicik-dark mb-2">Linha digitável:</p>
+                <code className="text-xs bg-white p-3 rounded block break-all mb-3">
+                  {success.boleto_line}
+                </code>
+                <button
+                  onClick={() => copyToClipboard(success.boleto_line, 'boleto')}
+                  className="w-full bg-spotnicik-cyan text-spotnicik-dark py-2 rounded-lg font-medium hover:bg-cyan-400 transition"
+                >
+                  {copied === 'boleto' ? '✓ Copiado!' : 'Copiar linha digitável'}
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* CARTÃO */}
+        {success.billing_type === 'CREDIT_CARD' && success.invoice_url && (
+          <div className="bg-spotnicik-light p-6 rounded-lg mb-6">
+            <a
+              href={success.invoice_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full bg-spotnicik-primary text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition"
+            >
+              💳 Pagar com Cartão
+            </a>
           </div>
         )}
 
         <button
-          onClick={() => setSuccess(null)}
-          className="w-full bg-spotnicik-primary text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition"
+          onClick={() => { setSuccess(null); setEstimate(null); }}
+          className="w-full bg-gray-200 text-spotnicik-dark py-2 rounded-lg font-medium hover:bg-gray-300 transition"
         >
           Fazer outro pagamento
         </button>
@@ -116,7 +173,7 @@ export default function Pagamentos() {
           type="number"
           min="1"
           value={quantity}
-          onChange={(e) => setQuantity(parseInt(e.target.value))}
+          onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
         />
       </div>
@@ -144,7 +201,9 @@ export default function Pagamentos() {
 
       {estimate && (
         <div className="bg-spotnicik-light p-4 rounded-lg mb-6">
-          <p className="text-sm text-spotnicik-dark"><strong>Valor Total:</strong> R$ {estimate.total.toFixed(2)}</p>
+          <p className="text-sm text-spotnicik-dark">
+            <strong>Valor Total:</strong> R$ {Number(estimate.total).toFixed(2)}
+          </p>
         </div>
       )}
 
