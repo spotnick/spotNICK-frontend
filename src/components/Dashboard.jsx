@@ -115,7 +115,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {activeTab === 'pagamentos' && <Pagamentos />}
+        {activeTab === 'pagamentos' && <Comprar />}
         {activeTab === 'perfil' && <Perfil user={user} />}
 		{activeTab === 'historico' && <Historico />}
       </main>
