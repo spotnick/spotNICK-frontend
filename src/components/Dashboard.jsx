@@ -1,3 +1,4 @@
+import Historico from './Historico';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -39,6 +40,16 @@ export default function Dashboard() {
       <nav className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 flex gap-8">
           <button
+            onClick={() => setActiveTab('historico')}
+            className={`py-4 px-2 font-medium transition ${
+              activeTab === 'historico'
+                ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
+                : 'text-spotnicik-dark hover:text-spotnicik-primary'
+            }`}
+          >
+            Histórico
+          </button>
+		  <button
             onClick={() => setActiveTab('home')}
             className={`py-4 px-2 font-medium transition ${
               activeTab === 'home'
@@ -106,6 +117,7 @@ export default function Dashboard() {
 
         {activeTab === 'pagamentos' && <Pagamentos />}
         {activeTab === 'perfil' && <Perfil user={user} />}
+		{activeTab === 'historico' && <Historico />}
       </main>
     </div>
   );
