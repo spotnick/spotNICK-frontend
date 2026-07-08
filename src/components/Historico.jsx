@@ -21,6 +21,8 @@ export default function Historico() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCharge, setSelectedCharge] = useState(null);
+  const [cancelling, setCancelling] = useState(null); // id em cancelamento
+  const [confirmCancel, setConfirmCancel] = useState(null); // charge aguardando confirmação
 
   const loadCharges = async () => {
     setLoading(true);
@@ -40,6 +42,19 @@ export default function Historico() {
   useEffect(() => {
     loadCharges();
   }, []);
+
+  const handleCancel = async (chargeId) => {
+    setCancelling(chargeId);
+    setConfirmCancel(null);
+    try {
+      await api.delete(`/api/payments/charges/${chargeId}/cancel`);
+      await loadCharges();
+    } catch (err) {
+      alert('Erro ao cancelar: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setCancelling(null);
+    }
+  };
 
   const formatDate = (d) =>
     d ? new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-';
@@ -89,37 +104,48 @@ export default function Historico() {
             return (
               <div
                 key={charge.id}
-                className="bg-white rounded-lg shadow p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3"
+                className="bg-white rounded-lg shadow p-4"
               >
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusInfo.classes}`}>
-                      {statusInfo.label}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      {BILLING_LABEL[charge.billing_type] || charge.billing_type}
-                    </span>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusInfo.classes}`}>
+                        {statusInfo.label}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {BILLING_LABEL[charge.billing_type] || charge.billing_type}
+                      </span>
+                    </div>
+                    <p className="text-spotnicik-dark font-medium">
+                      {charge.description || 'Compra SpotNICK'}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {formatDate(charge.created_at)}
+                    </p>
                   </div>
-                  <p className="text-spotnicik-dark font-medium">
-                    {charge.description || 'Compra SpotNICK'}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {formatDate(charge.created_at)}
-                  </p>
-                </div>
 
-                <div className="flex items-center justify-between md:justify-end gap-4">
-                  <span className="text-lg font-bold text-spotnicik-primary">
-                    R$ {Number(charge.value).toFixed(2)}
-                  </span>
-                  {isPending && (
-                    <button
-                      onClick={() => setSelectedCharge(charge.id)}
-                      className="bg-spotnicik-primary text-white text-sm px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition whitespace-nowrap"
-                    >
-                      Ver cobrança
-                    </button>
-                  )}
+                  <div className="flex items-center justify-between md:justify-end gap-4">
+                    <span className="text-lg font-bold text-spotnicik-primary">
+                      R$ {Number(charge.value).toFixed(2)}
+                    </span>
+                    {isPending && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setSelectedCharge(charge.id)}
+                          className="bg-spotnicik-primary text-white text-sm px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition whitespace-nowrap"
+                        >
+                          Ver cobrança
+                        </button>
+                        <button
+                          onClick={() => setConfirmCancel(charge)}
+                          disabled={cancelling === charge.id}
+                          className="bg-white border border-red-400 text-red-600 text-sm px-4 py-2 rounded-lg font-medium hover:bg-red-50 disabled:opacity-50 transition whitespace-nowrap"
+                        >
+                          {cancelling === charge.id ? 'Cancelando...' : 'Cancelar'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             );
@@ -132,9 +158,47 @@ export default function Historico() {
           chargeId={selectedCharge}
           onClose={() => {
             setSelectedCharge(null);
-            loadCharges(); // recarrega caso o status tenha mudado
+            loadCharges();
           }}
         />
+      )}
+
+      {/* Diálogo de confirmação de cancelamento */}
+      {confirmCancel && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center px-4 z-50"
+          onClick={() => setConfirmCancel(null)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-sm w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-bold text-spotnicik-dark mb-2">Cancelar cobrança?</h3>
+            <p className="text-sm text-spotnicik-dark mb-1">
+              {confirmCancel.description || 'Compra SpotNICK'}
+            </p>
+            <p className="text-sm text-gray-500 mb-4">
+              Valor: R$ {Number(confirmCancel.value).toFixed(2)}
+            </p>
+            <p className="text-sm text-red-600 mb-6">
+              Esta ação não pode ser desfeita. A cobrança será cancelada e não poderá mais ser paga.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmCancel(null)}
+                className="flex-1 bg-gray-200 text-spotnicik-dark py-2 rounded-lg font-medium hover:bg-gray-300 transition"
+              >
+                Voltar
+              </button>
+              <button
+                onClick={() => handleCancel(confirmCancel.id)}
+                className="flex-1 bg-red-600 text-white py-2 rounded-lg font-medium hover:bg-red-700 transition"
+              >
+                Sim, cancelar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
