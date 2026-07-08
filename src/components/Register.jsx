@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { isValidCPF, formatCPF } from '../utils/cpf';
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -11,27 +12,54 @@ export default function Register() {
     password: '',
     confirmPassword: '',
   });
+  const [cpfError, setCpfError] = useState('');
   const [loading, setLoading] = useState(false);
   const { register, error } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+
+    if (name === 'cpf') {
+      // Aplica a máscara enquanto digita
+      const masked = formatCPF(value);
+      setForm((prev) => ({ ...prev, cpf: masked }));
+      // Valida apenas quando tiver 11 dígitos
+      const digits = masked.replace(/\D/g, '');
+      if (digits.length === 11) {
+        setCpfError(isValidCPF(masked) ? '' : 'CPF inválido. Verifique os números.');
+      } else {
+        setCpfError('');
+      }
+      return;
+    }
+
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
+    if (!isValidCPF(form.cpf)) {
+      setCpfError('CPF inválido. Verifique os números.');
+      return;
+    }
+
     if (form.password !== form.confirmPassword) {
       alert('Senhas não conferem!');
       return;
     }
 
     setLoading(true);
-    const result = await register(form.name, form.email, form.phone, form.cpf, form.password);
+    const result = await register(
+      form.name,
+      form.email,
+      form.phone,
+      form.cpf.replace(/\D/g, ''),
+      form.password
+    );
     setLoading(false);
-    
+
     if (result.success) {
       alert('Cadastro realizado! Verifique seu email para ativar a conta.');
       navigate('/login');
@@ -107,11 +135,20 @@ export default function Register() {
                 name="cpf"
                 value={form.cpf}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
-                placeholder="12345678901"
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
+                  cpfError
+                    ? 'border-red-400 focus:ring-red-400'
+                    : 'border-gray-300 focus:ring-spotnicik-primary'
+                }`}
+                placeholder="123.456.789-01"
+                maxLength={14}
+                required
               />
             </div>
           </div>
+          {cpfError && (
+            <p className="text-red-600 text-xs -mt-2">{cpfError}</p>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-spotnicik-dark mb-1">
@@ -126,6 +163,9 @@ export default function Register() {
               placeholder="••••••••"
               required
             />
+            <p className="text-xs text-spotnicik-dark mt-1">
+              Mínimo 8 caracteres, com ao menos um número e um caractere especial
+            </p>
           </div>
 
           <div>
@@ -145,7 +185,7 @@ export default function Register() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !!cpfError}
             className="w-full bg-spotnicik-primary text-white py-2 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition"
           >
             {loading ? 'Cadastrando...' : 'Cadastrar'}
