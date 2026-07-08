@@ -67,7 +67,7 @@ export default function Dashboard() {
                 : 'text-spotnicik-dark hover:text-spotnicik-primary'
             }`}
           >
-            Pagamentos
+            Comprar
           </button>
           <button
             onClick={() => setActiveTab('perfil')}
@@ -115,7 +115,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {activeTab === 'pagamentos' && <Comprar />}
+        {activeTab === 'pagamentos' && <Pagamentos />}
         {activeTab === 'perfil' && <Perfil user={user} />}
 		{activeTab === 'historico' && <Historico />}
       </main>
