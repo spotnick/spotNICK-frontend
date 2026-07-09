@@ -26,7 +26,15 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-4">
             <span className="text-spotnicik-dark">Bem-vindo, {user?.name}!</span>
-            <button
+            {user?.role === 'owner' && (
+              <button
+                onClick={() => navigate('/admin')}
+                className="px-4 py-2 bg-spotnicik-dark text-white rounded-lg hover:bg-gray-800 transition"
+              >
+                Admin
+              </button>
+            )}
+			<button
               onClick={handleLogout}
               className="px-4 py-2 bg-spotnicik-pink text-white rounded-lg hover:bg-red-600 transition"
             >

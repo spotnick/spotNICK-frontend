@@ -7,6 +7,7 @@ import VerifyEmail from './components/VerifyEmail';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
 import ResendVerification from './components/ResendVerification';
+import AdminPage from './components/AdminPage';
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -36,6 +37,14 @@ export default function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/resend-verification" element={<ResendVerification />} />
         <Route
+          path="/admin"
+          element={
+            <PrivateRoute>
+              <AdminPage />
+            </PrivateRoute>
+          }
+        />
+		<Route
           path="/dashboard"
           element={
             <PrivateRoute>
