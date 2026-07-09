@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import AdminUsers from './AdminUsers';
+import AdminLocations from './AdminLocations';
 
 export default function AdminPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [tab, setTab] = useState('users');
 
   if (loading) {
     return (
@@ -14,10 +17,8 @@ export default function AdminPage() {
     );
   }
 
-  // Proteção no frontend (o backend também protege de verdade).
-  // Mostra o admin apenas para o dono. (Admins de local podem ser
-  // liberados depois, quando tratarmos permissões por local.)
-  const isAllowed = user && user.role === 'owner';
+  const isOwner = user && user.role === 'owner';
+  const isAllowed = isOwner; // por enquanto só owner; location_admin liberamos depois
 
   if (!isAllowed) {
     return (
@@ -39,7 +40,6 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-spotnicik-light">
-      {/* Header do admin */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
@@ -55,8 +55,35 @@ export default function AdminPage() {
         </div>
       </header>
 
+      {/* Abas do admin */}
+      <nav className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 flex gap-8">
+          <button
+            onClick={() => setTab('users')}
+            className={`py-4 px-2 font-medium transition ${
+              tab === 'users'
+                ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
+                : 'text-spotnicik-dark hover:text-spotnicik-primary'
+            }`}
+          >
+            Usuários
+          </button>
+          <button
+            onClick={() => setTab('locations')}
+            className={`py-4 px-2 font-medium transition ${
+              tab === 'locations'
+                ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
+                : 'text-spotnicik-dark hover:text-spotnicik-primary'
+            }`}
+          >
+            Locais
+          </button>
+        </div>
+      </nav>
+
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <AdminUsers />
+        {tab === 'users' && <AdminUsers />}
+        {tab === 'locations' && <AdminLocations isOwner={isOwner} />}
       </main>
     </div>
   );
