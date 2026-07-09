@@ -46,7 +46,6 @@ export default function AdminAccessPoints() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
 
-  // Carrega locais uma vez (para o select)
   useEffect(() => {
     (async () => {
       try {
@@ -133,6 +132,7 @@ export default function AdminAccessPoints() {
       alert(err.response?.data?.error || 'Erro ao alterar status.');
     }
   };
+
   const handleDelete = async (ap) => {
     if (!window.confirm(`Excluir o access point "${ap.name}"?`)) return;
     try {
@@ -201,7 +201,8 @@ export default function AdminAccessPoints() {
                       {ap.ip_address && <span>IP: {ap.ip_address}</span>}
                       {ap.ssid && <span>SSID: {ap.ssid}</span>}
                     </div>
-                <div className="flex gap-2">
+                  </div>
+                  <div className="flex gap-2">
                     <button
                       onClick={() => openEdit(ap)}
                       className="text-sm px-3 py-1.5 bg-spotnicik-primary text-white rounded-lg font-medium hover:bg-blue-700 transition"
