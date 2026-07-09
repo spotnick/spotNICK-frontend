@@ -125,6 +125,14 @@ export default function AdminAccessPoints() {
     }
   };
 
+  const toggleActive = async (ap) => {
+    try {
+      await api.patch(`/api/admin/access-points/${ap.id}`, { is_active: !ap.is_active });
+      await loadAps(filterLocation);
+    } catch (err) {
+      alert(err.response?.data?.error || 'Erro ao alterar status.');
+    }
+  };
   const handleDelete = async (ap) => {
     if (!window.confirm(`Excluir o access point "${ap.name}"?`)) return;
     try {
@@ -205,7 +213,13 @@ export default function AdminAccessPoints() {
                       onClick={() => handleDelete(ap)}
                       className="text-sm px-3 py-1.5 border border-red-400 text-red-600 rounded-lg font-medium hover:bg-red-50 transition"
                     >
-                      Excluir
+                      {ap.is_active ? 'Bloquear' : 'Ativar'}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(ap)}
+                      className="text-sm px-3 py-1.5 border border-red-400 text-red-600 rounded-lg font-medium hover:bg-red-50 transition"
+                    >
+					  Excluir
                     </button>
                   </div>
                 </div>
