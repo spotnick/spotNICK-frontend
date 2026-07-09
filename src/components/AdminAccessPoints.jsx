@@ -201,8 +201,7 @@ export default function AdminAccessPoints() {
                       {ap.ip_address && <span>IP: {ap.ip_address}</span>}
                       {ap.ssid && <span>SSID: {ap.ssid}</span>}
                     </div>
-                  </div>
-                  <div className="flex gap-2">
+                <div className="flex gap-2">
                     <button
                       onClick={() => openEdit(ap)}
                       className="text-sm px-3 py-1.5 bg-spotnicik-primary text-white rounded-lg font-medium hover:bg-blue-700 transition"
@@ -210,8 +209,8 @@ export default function AdminAccessPoints() {
                       Editar
                     </button>
                     <button
-                      onClick={() => handleDelete(ap)}
-                      className="text-sm px-3 py-1.5 border border-red-400 text-red-600 rounded-lg font-medium hover:bg-red-50 transition"
+                      onClick={() => toggleActive(ap)}
+                      className="text-sm px-3 py-1.5 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition"
                     >
                       {ap.is_active ? 'Bloquear' : 'Ativar'}
                     </button>
@@ -219,7 +218,7 @@ export default function AdminAccessPoints() {
                       onClick={() => handleDelete(ap)}
                       className="text-sm px-3 py-1.5 border border-red-400 text-red-600 rounded-lg font-medium hover:bg-red-50 transition"
                     >
-					  Excluir
+                      Excluir
                     </button>
                   </div>
                 </div>
