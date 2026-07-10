@@ -12,6 +12,9 @@ const emptyForm = {
   billing_mode: 'free',
   free_minutes: 0,
   show_ads: false,
+  speed_limit: '',
+  session_timeout: '',
+  data_quota_mb: '',
 };
 
 export default function AdminLocations({ isOwner }) {
@@ -53,6 +56,9 @@ export default function AdminLocations({ isOwner }) {
       billing_mode: loc.billing_mode,
       free_minutes: loc.free_minutes || 0,
       show_ads: loc.show_ads || false,
+      speed_limit: loc.speed_limit || '',
+      session_timeout: loc.session_timeout || '',
+      data_quota_mb: loc.data_quota_mb || '',
     });
     setShowForm(true);
   };
@@ -74,6 +80,9 @@ export default function AdminLocations({ isOwner }) {
         billing_mode: form.billing_mode,
         free_minutes: form.billing_mode === 'free_then_paid' ? Number(form.free_minutes) : 0,
         show_ads: form.show_ads,
+        speed_limit: form.speed_limit.trim() || null,
+        session_timeout: form.session_timeout ? Number(form.session_timeout) : null,
+        data_quota_mb: form.data_quota_mb ? Number(form.data_quota_mb) : null,
       };
       if (editing) {
         await api.patch(`/api/admin/locations/${editing.id}`, payload);
@@ -242,7 +251,48 @@ export default function AdminLocations({ isOwner }) {
                   />
                 </div>
               )}
-
+			  <div className="border-t pt-4">
+                <p className="text-sm font-medium text-spotnicik-dark mb-3">Limites de rede (opcional)</p>
+ 
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-spotnicik-dark mb-1">Velocidade (up/down)</label>
+                    <input
+                      type="text"
+                      name="speed_limit"
+                      value={form.speed_limit}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
+                      placeholder="5M/10M"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-spotnicik-dark mb-1">Sessão (segundos)</label>
+                    <input
+                      type="number"
+                      name="session_timeout"
+                      min="0"
+                      value={form.session_timeout}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
+                      placeholder="3600"
+                    />
+                  </div>
+                </div>
+ 
+                <div className="mt-3">
+                  <label className="block text-xs font-medium text-spotnicik-dark mb-1">Quota de dados (MB por sessão)</label>
+                  <input
+                    type="number"
+                    name="data_quota_mb"
+                    min="0"
+                    value={form.data_quota_mb}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
+                    placeholder="500 (vazio = ilimitado)"
+                  />
+                </div>
+              </div>
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
