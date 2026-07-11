@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import PasswordInput from './PasswordInput';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -68,11 +69,9 @@ export default function Login() {
                 Esqueci minha senha
               </Link>
             </div>
-            <input
-              type="password"
+            <PasswordInput
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
               placeholder="••••••••"
               required
             />

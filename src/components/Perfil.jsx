@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import api from '../services/api';
+import PasswordInput from './PasswordInput';
 
 export default function Perfil({ user }) {
   const [passwordForm, setPasswordForm] = useState({
@@ -130,12 +131,10 @@ export default function Perfil({ user }) {
             <label className="block text-sm font-medium text-spotnicik-dark mb-1">
               Nova Senha
             </label>
-            <input
-              type="password"
+            <PasswordInput
               name="newPassword"
               value={passwordForm.newPassword}
               onChange={handlePasswordChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
               placeholder="••••••••"
               required
             />
@@ -148,12 +147,10 @@ export default function Perfil({ user }) {
             <label className="block text-sm font-medium text-spotnicik-dark mb-1">
               Confirmar Senha
             </label>
-            <input
-              type="password"
+            <PasswordInput
               name="confirmPassword"
               value={passwordForm.confirmPassword}
               onChange={handlePasswordChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
               placeholder="••••••••"
               required
             />

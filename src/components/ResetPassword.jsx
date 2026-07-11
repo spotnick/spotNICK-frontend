@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import api from '../services/api';
+import PasswordInput from './PasswordInput';
 
 export default function ResetPassword() {
   const [password, setPassword] = useState('');
@@ -85,11 +86,9 @@ export default function ResetPassword() {
                 <label className="block text-sm font-medium text-spotnicik-dark mb-1">
                   Nova Senha
                 </label>
-                <input
-                  type="password"
+                <PasswordInput
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
                   placeholder="••••••••"
                   required
                 />
@@ -102,11 +101,9 @@ export default function ResetPassword() {
                 <label className="block text-sm font-medium text-spotnicik-dark mb-1">
                   Confirmar Nova Senha
                 </label>
-                <input
-                  type="password"
+                <PasswordInput
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
                   placeholder="••••••••"
                   required
                 />
