@@ -22,7 +22,14 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
+    // Rotas públicas que tratam seus próprios erros 401
+    // (não devem disparar refresh de token nem redirect para /login)
+    const publicRoutes = ['/api/portal/login'];
+    const isPublicRoute = publicRoutes.some((route) =>
+      error.config?.url?.includes(route)
+    );
+
+    if (error.response?.status === 401 && !isPublicRoute) {
       // Token expirado, tentar refresh
       try {
         const refreshToken = localStorage.getItem('refreshToken');
