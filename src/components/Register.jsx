@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { isValidCPF, formatCPF } from '../utils/cpf';
 import PasswordInput from './PasswordInput';
