@@ -187,7 +187,10 @@ export default function PortalWifi() {
 
         <p className="text-center text-xs text-gray-400 mt-6">
           Ainda não tem conta?{' '}
-          <a href="https://spotnick.app.br/register" className="text-spotnicik-primary hover:underline">
+          <a
+            href={`/register?location=${encodeURIComponent(locationSlug || '')}&link-login-only=${encodeURIComponent(linkLoginOnly || '')}&link-orig=${encodeURIComponent(linkOrig || '')}&mac=${encodeURIComponent(mac || '')}`}
+            className="text-spotnicik-primary hover:underline"
+          >
             Cadastre-se
           </a>
         </p>

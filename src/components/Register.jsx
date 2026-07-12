@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { isValidCPF, formatCPF } from '../utils/cpf';
 import PasswordInput from './PasswordInput';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -18,7 +19,15 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const { register, error } = useAuth();
   const navigate = useNavigate();
-
+  const [searchParams] = useSearchParams();
+  const wifiContext = {
+    location: searchParams.get('location'),
+    linkLoginOnly: searchParams.get('link-login-only'),
+    linkOrig: searchParams.get('link-orig'),
+    mac: searchParams.get('mac'),
+  };
+  const cameFromWifi = !!wifiContext.linkLoginOnly;
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -68,10 +77,18 @@ export default function Register() {
 
     if (result.success) {
       if (result.data?.verification_method === 'sms') {
-        navigate('/verify-sms', { state: { email: result.data.email } });
+        navigate('/verify-sms', {
+          state: { email: result.data.email, wifiContext: cameFromWifi ? wifiContext : null },
+        });
       } else {
         alert('Cadastro realizado! Verifique seu email para ativar a conta.');
-        navigate('/login');
+        if (cameFromWifi) {
+          navigate(
+            `/wifi?location=${encodeURIComponent(wifiContext.location || '')}&link-login-only=${encodeURIComponent(wifiContext.linkLoginOnly || '')}&link-orig=${encodeURIComponent(wifiContext.linkOrig || '')}&mac=${encodeURIComponent(wifiContext.mac || '')}`
+          );
+        } else {
+          navigate('/login');
+        }
       }
     }
   };

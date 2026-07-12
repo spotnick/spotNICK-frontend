@@ -5,7 +5,7 @@ import api from '../services/api';
 export default function VerifySmsCode() {
   const navigate = useNavigate();
   const location = useLocation();
-  const email = location.state?.email || '';
+  const wifiContext = location.state?.wifiContext || null;
 
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,7 +28,15 @@ export default function VerifySmsCode() {
     try {
       await api.post('/api/auth/verify-sms-code', { email, code });
       setSuccess(true);
-      setTimeout(() => navigate('/login'), 2000);
+      setTimeout(() => {
+        if (wifiContext?.linkLoginOnly) {
+          navigate(
+            `/wifi?location=${encodeURIComponent(wifiContext.location || '')}&link-login-only=${encodeURIComponent(wifiContext.linkLoginOnly || '')}&link-orig=${encodeURIComponent(wifiContext.linkOrig || '')}&mac=${encodeURIComponent(wifiContext.mac || '')}`
+          );
+        } else {
+          navigate('/login');
+        }
+      }, 2000);
     } catch (err) {
       setError(err.response?.data?.error || 'Não foi possível verificar o código.');
     } finally {
