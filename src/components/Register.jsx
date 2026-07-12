@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { isValidCPF, formatCPF } from '../utils/cpf';
-import PasswordInput from './PasswordInput';
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -86,11 +85,13 @@ export default function Register() {
             <label className="block text-sm font-medium text-spotnicik-dark mb-1">
               Nome
             </label>
-            <PasswordInput
-              name="password"
-              value={form.password}
+            <input
+              type="text"
+              name="name"
+              value={form.name}
               onChange={handleChange}
-              placeholder="••••••••"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
+              placeholder="Seu Nome"
               required
             />
           </div>
@@ -99,11 +100,14 @@ export default function Register() {
             <label className="block text-sm font-medium text-spotnicik-dark mb-1">
               E-mail
             </label>
-            <PasswordInput
-              name="confirmPassword"
-              value={form.confirmPassword}
+            <input
+              type="email"
+              name="email"
+              value={form.email}
               onChange={handleChange}
-              placeholder="••••••••"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
+              placeholder="seu@email.com"
+              required
             />
           </div>
 
