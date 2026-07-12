@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { isValidCPF, formatCPF } from '../utils/cpf';
+import PasswordInput from './PasswordInput';
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -12,6 +13,7 @@ export default function Register() {
     password: '',
     confirmPassword: '',
   });
+  const [verificationMethod, setVerificationMethod] = useState('email');
   const [cpfError, setCpfError] = useState('');
   const [loading, setLoading] = useState(false);
   const { register, error } = useAuth();
@@ -21,10 +23,8 @@ export default function Register() {
     const { name, value } = e.target;
 
     if (name === 'cpf') {
-      // Aplica a máscara enquanto digita
       const masked = formatCPF(value);
       setForm((prev) => ({ ...prev, cpf: masked }));
-      // Valida apenas quando tiver 11 dígitos
       const digits = masked.replace(/\D/g, '');
       if (digits.length === 11) {
         setCpfError(isValidCPF(masked) ? '' : 'CPF inválido. Verifique os números.');
@@ -50,19 +50,29 @@ export default function Register() {
       return;
     }
 
+    if (verificationMethod === 'sms' && !form.phone.trim()) {
+      alert('Telefone é obrigatório para verificação por SMS.');
+      return;
+    }
+
     setLoading(true);
     const result = await register(
       form.name,
       form.email,
       form.phone,
       form.cpf.replace(/\D/g, ''),
-      form.password
+      form.password,
+      verificationMethod
     );
     setLoading(false);
 
     if (result.success) {
-      alert('Cadastro realizado! Verifique seu email para ativar a conta.');
-      navigate('/login');
+      if (result.data?.verification_method === 'sms') {
+        navigate('/verify-sms', { state: { email: result.data.email } });
+      } else {
+        alert('Cadastro realizado! Verifique seu email para ativar a conta.');
+        navigate('/login');
+      }
     }
   };
 
@@ -91,7 +101,7 @@ export default function Register() {
               value={form.name}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
-              placeholder="Seu Nome"
+              placeholder="Seu nome completo"
               required
             />
           </div>
@@ -114,7 +124,7 @@ export default function Register() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-spotnicik-dark mb-1">
-                Telefone
+                Telefone {verificationMethod === 'sms' && <span className="text-red-500">*</span>}
               </label>
               <input
                 type="tel"
@@ -123,6 +133,7 @@ export default function Register() {
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
                 placeholder="11999999999"
+                required={verificationMethod === 'sms'}
               />
             </div>
 
@@ -154,12 +165,10 @@ export default function Register() {
             <label className="block text-sm font-medium text-spotnicik-dark mb-1">
               Senha
             </label>
-            <input
-              type="password"
+            <PasswordInput
               name="password"
               value={form.password}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
               placeholder="••••••••"
               required
             />
@@ -172,15 +181,48 @@ export default function Register() {
             <label className="block text-sm font-medium text-spotnicik-dark mb-1">
               Confirmar Senha
             </label>
-            <input
-              type="password"
+            <PasswordInput
               name="confirmPassword"
               value={form.confirmPassword}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
               placeholder="••••••••"
               required
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-spotnicik-dark mb-2">
+              Como você quer verificar sua conta?
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setVerificationMethod('email')}
+                className={`py-2 rounded-lg border-2 font-medium transition ${
+                  verificationMethod === 'email'
+                    ? 'border-spotnicik-primary bg-spotnicik-light text-spotnicik-primary'
+                    : 'border-gray-300 text-spotnicik-dark hover:border-spotnicik-cyan'
+                }`}
+              >
+                📧 Email
+              </button>
+              <button
+                type="button"
+                onClick={() => setVerificationMethod('sms')}
+                className={`py-2 rounded-lg border-2 font-medium transition ${
+                  verificationMethod === 'sms'
+                    ? 'border-spotnicik-primary bg-spotnicik-light text-spotnicik-primary'
+                    : 'border-gray-300 text-spotnicik-dark hover:border-spotnicik-cyan'
+                }`}
+              >
+                📱 SMS
+              </button>
+            </div>
+            {verificationMethod === 'sms' && (
+              <p className="text-xs text-gray-500 mt-2">
+                Enviaremos um código de 6 dígitos por SMS para o telefone informado.
+              </p>
+            )}
           </div>
 
           <button
