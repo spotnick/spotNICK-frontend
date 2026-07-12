@@ -42,17 +42,18 @@ export function useAuth() {
     }
   };
 
-  const register = async (name, email, phone, cpf, password) => {
+  const register = async (name, email, phone, cpf, password, verification_method) => {
     try {
       setError(null);
-      await api.post('/api/auth/register', {
+      const { data } = await api.post('/api/auth/register', {
         name,
         email,
         phone,
         cpf,
         password,
+        verification_method,
       });
-      return { success: true };
+      return { success: true, data };
     } catch (err) {
       const errorMsg = err.response?.data?.error || 'Erro ao registrar';
       setError(errorMsg);

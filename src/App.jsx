@@ -9,6 +9,7 @@ import ResetPassword from './components/ResetPassword';
 import ResendVerification from './components/ResendVerification';
 import AdminPage from './components/AdminPage';
 import PortalWifi from './components/PortalWifi';
+import VerifySmsCode from './components/VerifySmsCode';
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -38,6 +39,7 @@ export default function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/resend-verification" element={<ResendVerification />} />
 		<Route path="/wifi" element={<PortalWifi />} />
+		<Route path="/verify-sms" element={<VerifySmsCode />} />
         <Route
           path="/admin"
           element={
