@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 
+const WIFI_CTX_KEY = 'spotnick_wifi_ctx';
+
 export default function PortalWifi() {
   const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
@@ -13,13 +15,24 @@ export default function PortalWifi() {
   const formRef = useRef(null);
   const [radiusCreds, setRadiusCreds] = useState(null);
 
-  // Parâmetros que o Mikrotik envia no redirect
   const locationSlug = searchParams.get('location');
   const linkLoginOnly = searchParams.get('link-login-only');
   const linkOrig = searchParams.get('link-orig');
   const mac = searchParams.get('mac');
 
   const missingMikrotikParams = !linkLoginOnly || !locationSlug;
+
+  // Assim que chegamos com parâmetros válidos do Mikrotik, guardamos
+  // como rede de segurança no sessionStorage — sobrevive a recarregamentos
+  // de página (ex: usuário sai para ler o SMS e o navegador recarrega a aba).
+  useEffect(() => {
+    if (!missingMikrotikParams) {
+      sessionStorage.setItem(
+        WIFI_CTX_KEY,
+        JSON.stringify({ location: locationSlug, linkLoginOnly, linkOrig, mac })
+      );
+    }
+  }, [missingMikrotikParams, locationSlug, linkLoginOnly, linkOrig, mac]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,7 +47,6 @@ export default function PortalWifi() {
         location_slug: locationSlug,
       });
 
-      // Guarda as credenciais técnicas e dispara o form para o Mikrotik
       setRadiusCreds({
         username: data.radius_username,
         password: data.radius_password,
@@ -50,14 +62,14 @@ export default function PortalWifi() {
     }
   };
 
-  // Assim que temos as credenciais RADIUS, submete o form oculto para o Mikrotik
   useEffect(() => {
     if (radiusCreds && formRef.current) {
+      // Liberação concluída: o contexto já cumpriu seu papel, pode limpar.
+      sessionStorage.removeItem(WIFI_CTX_KEY);
       formRef.current.submit();
     }
   }, [radiusCreds]);
 
-  // Tela: parâmetros do Mikrotik ausentes (acesso direto, fora do hotspot)
   if (missingMikrotikParams) {
     return (
       <div className="min-h-screen bg-spotnicik-dark flex items-center justify-center px-4">
@@ -71,7 +83,6 @@ export default function PortalWifi() {
     );
   }
 
-  // Tela: liberado, a caminho do Mikrotik (form oculto sendo submetido)
   if (radiusCreds) {
     return (
       <div className="min-h-screen bg-spotnicik-dark flex items-center justify-center px-4">
@@ -79,7 +90,6 @@ export default function PortalWifi() {
           <div className="w-10 h-10 border-4 border-spotnicik-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-spotnicik-dark font-medium">Conectando você ao WiFi...</p>
         </div>
-        {/* Form oculto: navegação real para o Mikrotik (não é fetch) */}
         <form ref={formRef} action={linkLoginOnly} method="post" style={{ display: 'none' }}>
           <input type="hidden" name="username" value={radiusCreds.username} />
           <input type="hidden" name="password" value={radiusCreds.password} />
@@ -88,7 +98,6 @@ export default function PortalWifi() {
     );
   }
 
-  // Tela: pagamento necessário
   if (paymentRequired) {
     return (
       <div className="min-h-screen bg-spotnicik-dark flex items-center justify-center px-4">
@@ -115,7 +124,6 @@ export default function PortalWifi() {
     );
   }
 
-  // Tela principal: login
   return (
     <div className="min-h-screen bg-spotnicik-dark flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full">

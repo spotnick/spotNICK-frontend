@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { isValidCPF, formatCPF } from '../utils/cpf';
 import PasswordInput from './PasswordInput';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+
+const WIFI_CTX_KEY = 'spotnick_wifi_ctx';
 
 export default function Register() {
+  const [searchParams] = useSearchParams();
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -18,7 +21,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const { register, error } = useAuth();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+
   const wifiContext = {
     location: searchParams.get('location'),
     linkLoginOnly: searchParams.get('link-login-only'),
@@ -26,7 +29,17 @@ export default function Register() {
     mac: searchParams.get('mac'),
   };
   const cameFromWifi = !!wifiContext.linkLoginOnly;
-  
+
+  // Rede de segurança: garante que o contexto esteja salvo assim que
+  // a tela carrega, para sobreviver a recarregamentos posteriores
+  // (ex: usuário sai para ler o SMS e o navegador recarrega a aba).
+  useEffect(() => {
+    if (cameFromWifi) {
+      sessionStorage.setItem(WIFI_CTX_KEY, JSON.stringify(wifiContext));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cameFromWifi]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 

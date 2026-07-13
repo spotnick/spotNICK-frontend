@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import PasswordInput from './PasswordInput';
 
+const WIFI_CTX_KEY = 'spotnick_wifi_ctx';
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -17,6 +19,21 @@ export default function Login() {
     setLoading(false);
 
     if (result.success) {
+      // Se existe um contexto de WiFi pendente (usuário veio do hotspot),
+      // manda de volta para o portal em vez do dashboard.
+      try {
+        const raw = sessionStorage.getItem(WIFI_CTX_KEY);
+        if (raw) {
+          const ctx = JSON.parse(raw);
+          if (ctx?.linkLoginOnly) {
+            navigate(
+              `/wifi?location=${encodeURIComponent(ctx.location || '')}&link-login-only=${encodeURIComponent(ctx.linkLoginOnly || '')}&link-orig=${encodeURIComponent(ctx.linkOrig || '')}&mac=${encodeURIComponent(ctx.mac || '')}`
+            );
+            return;
+          }
+        }
+      } catch { /* ignora e segue fluxo normal */ }
+
       navigate('/dashboard');
     }
   };

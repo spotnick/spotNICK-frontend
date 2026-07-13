@@ -2,6 +2,21 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams, Link } from 'react-router-dom';
 import api from '../services/api';
 
+const WIFI_CTX_KEY = 'spotnick_wifi_ctx';
+
+function readWifiContext(location) {
+  // Ordem de prioridade: state da navegação -> sessionStorage (rede de segurança)
+  if (location.state?.wifiContext) return location.state.wifiContext;
+  try {
+    const raw = sessionStorage.getItem(WIFI_CTX_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed?.linkLoginOnly) return parsed;
+    }
+  } catch { /* ignora */ }
+  return null;
+}
+
 export default function VerifySmsCode() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -9,7 +24,7 @@ export default function VerifySmsCode() {
 
   const stateEmail = location.state?.email || '';
   const queryEmail = searchParams.get('email') || '';
-  const wifiContext = location.state?.wifiContext || null;
+  const wifiContext = readWifiContext(location);
 
   const [email, setEmail] = useState(stateEmail || queryEmail);
   const [emailConfirmed, setEmailConfirmed] = useState(!!(stateEmail || queryEmail));
