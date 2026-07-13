@@ -32,12 +32,23 @@ export default function LocationPicker({ latitude, longitude, onChange }) {
   const hasPosition = latitude != null && longitude != null;
   const center = hasPosition ? [latitude, longitude] : DEFAULT_CENTER;
 
-  const handleMapClick = useCallback((lat, lng) => {
+  const handleMapClick = useCallback(async (lat, lng) => {
     onChange({ latitude: lat, longitude: lng, address: null });
+    // Busca o endereço correspondente ao ponto clicado (geocodificação reversa)
+    try {
+      const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+      const res = await fetch(url, { headers: { 'Accept-Language': 'pt-BR' } });
+      const result = await res.json();
+      if (result?.display_name) {
+        onChange({ latitude: lat, longitude: lng, address: result.display_name });
+      }
+    } catch {
+      // Se a busca reversa falhar, mantém só as coordenadas — não é crítico
+    }
   }, [onChange]);
 
   const handleSearch = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!address.trim()) return;
     setSearching(true);
     setSearchError(null);
@@ -60,28 +71,37 @@ export default function LocationPicker({ latitude, longitude, onChange }) {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSearch();
+    }
+  };
+
   return (
     <div>
       <label className="block text-sm font-medium text-spotnicik-dark mb-1">
         Localização
       </label>
 
-      <form onSubmit={handleSearch} className="flex gap-2 mb-2">
+      <div className="flex gap-2 mb-2">
         <input
           type="text"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="Digite o endereço para buscar..."
           className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
         />
         <button
-          type="submit"
+          type="button"
+          onClick={handleSearch}
           disabled={searching}
           className="px-4 py-2 bg-spotnicik-primary text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition whitespace-nowrap"
         >
           {searching ? 'Buscando...' : 'Buscar'}
         </button>
-      </form>
+      </div>
 
       {searchError && (
         <p className="text-red-600 text-xs mb-2">{searchError}</p>
