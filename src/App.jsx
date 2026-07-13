@@ -10,6 +10,8 @@ import ResendVerification from './components/ResendVerification';
 import AdminPage from './components/AdminPage';
 import PortalWifi from './components/PortalWifi';
 import VerifySmsCode from './components/VerifySmsCode';
+import LocationsMap from './components/LocationsMap';
+
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -40,6 +42,7 @@ export default function App() {
         <Route path="/resend-verification" element={<ResendVerification />} />
 		<Route path="/wifi" element={<PortalWifi />} />
 		<Route path="/verify-sms" element={<VerifySmsCode />} />
+        <Route path="/mapa" element={<LocationsMap />} />
         <Route
           path="/admin"
           element={
