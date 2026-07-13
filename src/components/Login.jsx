@@ -36,10 +36,17 @@ export default function Login() {
           <div className="bg-red-100 text-red-700 p-4 rounded-lg mb-6">
             {error}
             {emailNotVerified && (
-              <div className="mt-2">
-                <Link to="/resend-verification" className="text-spotnicik-primary font-medium underline">
-                  Reenviar e-mail de verificação
-                </Link>
+              <div className="mt-2 space-y-1">
+                <div>
+                  <Link to="/resend-verification" className="text-spotnicik-primary font-medium underline">
+                    Reenviar e-mail de verificação
+                  </Link>
+                </div>
+                <div>
+                  <Link to={`/verify-sms?email=${encodeURIComponent(email)}`} className="text-spotnicik-primary font-medium underline">
+                    Ou verificar por código SMS
+                  </Link>
+                </div>
               </div>
             )}
           </div>
@@ -97,6 +104,12 @@ export default function Login() {
             Não recebeu o e-mail de verificação?{' '}
             <Link to="/resend-verification" className="text-spotnicik-cyan font-medium hover:underline">
               Reenviar
+            </Link>
+          </p>
+          <p className="text-spotnicik-dark text-sm">
+            Cadastrou-se com SMS e não verificou?{' '}
+            <Link to="/verify-sms" className="text-spotnicik-cyan font-medium hover:underline">
+              Verificar código
             </Link>
           </p>
         </div>
