@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
+import LocationPicker from './LocationPicker';
 
 const BILLING_LABELS = {
   free: 'Grátis',
@@ -15,6 +16,9 @@ const emptyForm = {
   speed_limit: '',
   session_timeout: '',
   data_quota_mb: '',
+  address: '',
+  latitude: null,
+  longitude: null,
 };
 
 export default function AdminLocations({ isOwner }) {
@@ -22,7 +26,7 @@ export default function AdminLocations({ isOwner }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState(null); // location sendo editada
+  const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
 
@@ -59,6 +63,9 @@ export default function AdminLocations({ isOwner }) {
       speed_limit: loc.speed_limit || '',
       session_timeout: loc.session_timeout || '',
       data_quota_mb: loc.data_quota_mb || '',
+      address: loc.address || '',
+      latitude: loc.latitude ?? null,
+      longitude: loc.longitude ?? null,
     });
     setShowForm(true);
   };
@@ -68,6 +75,16 @@ export default function AdminLocations({ isOwner }) {
     setForm((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
+    }));
+  };
+
+  const handleLocationPick = ({ latitude, longitude, address }) => {
+    setForm((prev) => ({
+      ...prev,
+      latitude,
+      longitude,
+      // Só sobrescreve o endereço se a busca trouxe um novo; clique no mapa não mexe no texto
+      address: address !== null ? address : prev.address,
     }));
   };
 
@@ -83,6 +100,9 @@ export default function AdminLocations({ isOwner }) {
         speed_limit: form.speed_limit.trim() || null,
         session_timeout: form.session_timeout ? Number(form.session_timeout) : null,
         data_quota_mb: form.data_quota_mb ? Number(form.data_quota_mb) : null,
+        address: form.address || null,
+        latitude: form.latitude,
+        longitude: form.longitude,
       };
       if (editing) {
         await api.patch(`/api/admin/locations/${editing.id}`, payload);
@@ -156,6 +176,9 @@ export default function AdminLocations({ isOwner }) {
                     ) : (
                       <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">Inativo</span>
                     )}
+                    {loc.latitude != null && (
+                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">📍 No mapa</span>
+                    )}
                   </div>
                   <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
                     <span>Cobrança: <strong>{BILLING_LABELS[loc.billing_mode]}</strong>
@@ -199,11 +222,11 @@ export default function AdminLocations({ isOwner }) {
       {/* Formulário (modal) */}
       {showForm && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center px-4 z-50"
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center px-4 z-50 py-8"
           onClick={() => setShowForm(false)}
         >
           <div
-            className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-xl font-bold text-spotnicik-primary mb-4">
@@ -251,9 +274,10 @@ export default function AdminLocations({ isOwner }) {
                   />
                 </div>
               )}
-			  <div className="border-t pt-4">
+
+              <div className="border-t pt-4">
                 <p className="text-sm font-medium text-spotnicik-dark mb-3">Limites de rede (opcional)</p>
- 
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-medium text-spotnicik-dark mb-1">Velocidade (up/down)</label>
@@ -279,7 +303,7 @@ export default function AdminLocations({ isOwner }) {
                     />
                   </div>
                 </div>
- 
+
                 <div className="mt-3">
                   <label className="block text-xs font-medium text-spotnicik-dark mb-1">Quota de dados (MB por sessão)</label>
                   <input
@@ -293,6 +317,28 @@ export default function AdminLocations({ isOwner }) {
                   />
                 </div>
               </div>
+
+              <div className="border-t pt-4">
+                <LocationPicker
+                  latitude={form.latitude}
+                  longitude={form.longitude}
+                  onChange={handleLocationPick}
+                />
+                <div className="mt-2">
+                  <label className="block text-xs font-medium text-spotnicik-dark mb-1">
+                    Endereço (opcional, exibido para o usuário)
+                  </label>
+                  <input
+                    type="text"
+                    name="address"
+                    value={form.address}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
+                    placeholder="Rua Exemplo, 123 - Centro"
+                  />
+                </div>
+              </div>
+
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
