@@ -4,6 +4,8 @@ import { useAuth } from '../hooks/useAuth';
 import AdminUsers from './AdminUsers';
 import AdminLocations from './AdminLocations';
 import AdminAccessPoints from './AdminAccessPoints';
+import AdminMikrotikRouters from './AdminMikrotikRouters';
+
 
 export default function AdminPage() {
   const { user, loading } = useAuth();
@@ -80,6 +82,16 @@ export default function AdminPage() {
             Locais
           </button>
 		  <button
+            onClick={() => setTab('routers')}
+            className={`py-4 px-2 font-medium transition ${
+              tab === 'routers'
+                ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
+                : 'text-spotnicik-dark hover:text-spotnicik-primary'
+            }`}
+          >
+            Roteadores
+          </button>
+		  <button
             onClick={() => setTab('aps')}
             className={`py-4 px-2 font-medium transition ${
               tab === 'aps'
@@ -95,6 +107,7 @@ export default function AdminPage() {
       <main className="max-w-7xl mx-auto px-4 py-8">
         {tab === 'users' && <AdminUsers />}
         {tab === 'locations' && <AdminLocations isOwner={isOwner} />}
+        {tab === 'routers' && <AdminMikrotikRouters />}
 		{tab === 'aps' && <AdminAccessPoints />}
       </main>
     </div>
