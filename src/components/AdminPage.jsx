@@ -5,6 +5,7 @@ import AdminUsers from './AdminUsers';
 import AdminLocations from './AdminLocations';
 import AdminAccessPoints from './AdminAccessPoints';
 import AdminMikrotikRouters from './AdminMikrotikRouters';
+import ConsumptionDashboard from './ConsumptionDashboard';
 
 
 export default function AdminPage() {
@@ -101,6 +102,16 @@ export default function AdminPage() {
           >
             Access Points
           </button>
+		  <button
+            onClick={() => setTab('consumption')}
+            className={`py-4 px-2 font-medium transition ${
+              tab === 'consumption'
+                ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
+                : 'text-spotnicik-dark hover:text-spotnicik-primary'
+            }`}
+          >
+            Consumo
+          </button>
         </div>
       </nav>
 
@@ -109,6 +120,8 @@ export default function AdminPage() {
         {tab === 'locations' && <AdminLocations isOwner={isOwner} />}
         {tab === 'routers' && <AdminMikrotikRouters />}
 		{tab === 'aps' && <AdminAccessPoints />}
+		{tab === 'aps' && <AdminAccessPoints />}
+        {tab === 'consumption' && <ConsumptionDashboard />}
       </main>
     </div>
   );
