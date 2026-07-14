@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import Pagamentos from './Pagamentos';
 import Perfil from './Perfil';
+import LocationsMap from './LocationsMap';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('home');
@@ -87,6 +88,16 @@ export default function Dashboard() {
           >
             Perfil
           </button>
+          <button
+            onClick={() => setActiveTab('mapa')}
+            className={`py-4 px-2 font-medium transition ${
+              activeTab === 'mapa'
+                ? 'text-spotnicik-primary border-b-2 border-spotnicik-primary'
+                : 'text-spotnicik-dark hover:text-spotnicik-primary'
+            }`}
+          >
+            🗺️ Mapa
+          </button>
         </div>
       </nav>
 
@@ -125,7 +136,8 @@ export default function Dashboard() {
 
         {activeTab === 'pagamentos' && <Pagamentos />}
         {activeTab === 'perfil' && <Perfil user={user} />}
-		{activeTab === 'historico' && <Historico />}
+        {activeTab === 'historico' && <Historico />}
+        {activeTab === 'mapa' && <LocationsMap />}
       </main>
     </div>
   );
