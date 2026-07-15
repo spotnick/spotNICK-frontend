@@ -120,7 +120,6 @@ export default function AdminPage() {
         {tab === 'locations' && <AdminLocations isOwner={isOwner} />}
         {tab === 'routers' && <AdminMikrotikRouters />}
 		{tab === 'aps' && <AdminAccessPoints />}
-		{tab === 'aps' && <AdminAccessPoints />}
         {tab === 'consumption' && <ConsumptionDashboard />}
       </main>
     </div>
