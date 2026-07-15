@@ -13,7 +13,7 @@ export default function AdminUsers() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [busy, setBusy] = useState(null); // id em operação
+  const [busy, setBusy] = useState(null);
   const [offset, setOffset] = useState(0);
   const LIMIT = 20;
 
@@ -56,6 +56,20 @@ export default function AdminUsers() {
     }
   };
 
+  const setRole = async (user, newRole) => {
+    const acao = newRole === 'owner' ? 'promover a DONO' : 'remover de DONO';
+    if (!window.confirm(`Tem certeza que deseja ${acao} o usuário "${user.name}"?`)) return;
+    setBusy(user.id);
+    try {
+      await api.post(`/api/admin/users/${user.id}/set-role`, { role: newRole });
+      await loadUsers(search, offset);
+    } catch (err) {
+      alert(err.response?.data?.error || 'Erro ao alterar papel.');
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const changePage = (newOffset) => {
     setOffset(newOffset);
     loadUsers(search, newOffset);
@@ -68,7 +82,6 @@ export default function AdminUsers() {
     <div className="max-w-5xl mx-auto">
       <h2 className="text-2xl font-bold text-spotnicik-primary mb-6">Gestão de Usuários</h2>
 
-      {/* Busca */}
       <form onSubmit={handleSearch} className="flex gap-2 mb-6">
         <input
           type="text"
@@ -138,23 +151,42 @@ export default function AdminUsers() {
                       </td>
                       <td className="px-4 py-3 text-gray-500">{formatDate(u.created_at)}</td>
                       <td className="px-4 py-3 text-right">
-                        {u.role !== 'owner' && (
-                          <button
-                            onClick={() => toggleBlock(u)}
-                            disabled={busy === u.id}
-                            className={`text-xs px-3 py-1.5 rounded-lg font-medium transition disabled:opacity-50 ${
-                              u.is_blocked
-                                ? 'bg-green-600 text-white hover:bg-green-700'
-                                : 'bg-white border border-red-400 text-red-600 hover:bg-red-50'
-                            }`}
-                          >
-                            {busy === u.id
-                              ? '...'
-                              : u.is_blocked
-                              ? 'Desbloquear'
-                              : 'Bloquear'}
-                          </button>
-                        )}
+                        <div className="flex gap-2 justify-end">
+                          {u.role === 'owner' ? (
+                            <button
+                              onClick={() => setRole(u, 'user')}
+                              disabled={busy === u.id}
+                              className="text-xs px-3 py-1.5 rounded-lg font-medium transition disabled:opacity-50 bg-white border border-gray-400 text-gray-600 hover:bg-gray-50"
+                            >
+                              {busy === u.id ? '...' : 'Remover Dono'}
+                            </button>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => setRole(u, 'owner')}
+                                disabled={busy === u.id}
+                                className="text-xs px-3 py-1.5 rounded-lg font-medium transition disabled:opacity-50 bg-spotnicik-primary text-white hover:bg-blue-700"
+                              >
+                                {busy === u.id ? '...' : 'Tornar Dono'}
+                              </button>
+                              <button
+                                onClick={() => toggleBlock(u)}
+                                disabled={busy === u.id}
+                                className={`text-xs px-3 py-1.5 rounded-lg font-medium transition disabled:opacity-50 ${
+                                  u.is_blocked
+                                    ? 'bg-green-600 text-white hover:bg-green-700'
+                                    : 'bg-white border border-red-400 text-red-600 hover:bg-red-50'
+                                }`}
+                              >
+                                {busy === u.id
+                                  ? '...'
+                                  : u.is_blocked
+                                  ? 'Desbloquear'
+                                  : 'Bloquear'}
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -163,7 +195,6 @@ export default function AdminUsers() {
             </div>
           </div>
 
-          {/* Paginação */}
           <div className="flex justify-between items-center mt-4">
             <p className="text-sm text-gray-500">
               Mostrando {offset + 1}–{Math.min(offset + LIMIT, total)} de {total}
