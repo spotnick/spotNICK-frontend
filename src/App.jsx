@@ -11,6 +11,7 @@ import AdminPage from './components/AdminPage';
 import PortalWifi from './components/PortalWifi';
 import VerifySmsCode from './components/VerifySmsCode';
 import LocationsMap from './components/LocationsMap';
+import StatusWifi from './components/StatusWifi';
 
 
 function PrivateRoute({ children }) {
@@ -43,6 +44,7 @@ export default function App() {
 		<Route path="/wifi" element={<PortalWifi />} />
 		<Route path="/verify-sms" element={<VerifySmsCode />} />
         <Route path="/mapa" element={<LocationsMap />} />
+        <Route path="/status" element={<StatusWifi />} />
         <Route
           path="/admin"
           element={
