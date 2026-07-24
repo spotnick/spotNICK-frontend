@@ -21,9 +21,26 @@ export default function StatusWifi() {
   const sessionTimeLeft = searchParams.get('session-time-left') || '';
   const uptime = searchParams.get('uptime') || '';
   const logoutUrl = searchParams.get('logout') || '';
+  const locationSlug = searchParams.get('location') || '';
 
   const [plan, setPlan] = useState(null);
   const [loadingPlan, setLoadingPlan] = useState(true);
+  const [ad, setAd] = useState(null);
+
+  // Busca a publicidade do local (se houver)
+  useEffect(() => {
+    if (!locationSlug) return;
+    (async () => {
+      try {
+        const { data } = await api.get('/api/portal/location-ad', {
+          params: { location: locationSlug },
+        });
+        if (data?.show_ads && data?.banner_url) {
+          setAd({ bannerUrl: data.banner_url, linkUrl: data.link_url });
+        }
+      } catch { /* sem anúncio, tudo bem */ }
+    })();
+  }, [locationSlug]);
 
   useEffect(() => {
     if (!username) {
@@ -146,6 +163,29 @@ export default function StatusWifi() {
               </p>
             </div>
           ) : null}
+
+          {/* Publicidade do local (banner responsivo, se configurado) */}
+          {ad && (
+            <div className="mb-5">
+              {ad.linkUrl ? (
+                <a href={ad.linkUrl} target="_blank" rel="noopener noreferrer" className="block">
+                  <img
+                    src={ad.bannerUrl}
+                    alt="Publicidade"
+                    className="w-full rounded-xl"
+                    style={{ aspectRatio: '16 / 9', objectFit: 'cover' }}
+                  />
+                </a>
+              ) : (
+                <img
+                  src={ad.bannerUrl}
+                  alt="Publicidade"
+                  className="w-full rounded-xl"
+                  style={{ aspectRatio: '16 / 9', objectFit: 'cover' }}
+                />
+              )}
+            </div>
+          )}
 
           {/* Ações */}
           <button
