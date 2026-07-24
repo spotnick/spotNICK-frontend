@@ -8,6 +8,9 @@ const BILLING_LABELS = {
   free_then_paid: 'Grátis, depois pago',
 };
 
+const MAX_BANNER_SIZE = 2 * 1024 * 1024; // 2 MB
+const ALLOWED_BANNER_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
 const emptyForm = {
   name: '',
   billing_mode: 'free',
@@ -30,6 +33,12 @@ export default function AdminLocations({ isOwner }) {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
 
+  // Estado da publicidade
+  const [bannerUrl, setBannerUrl] = useState(null);
+  const [adLink, setAdLink] = useState('');
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [bannerError, setBannerError] = useState(null);
+
   const loadLocations = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -50,6 +59,9 @@ export default function AdminLocations({ isOwner }) {
   const openCreate = () => {
     setEditing(null);
     setForm(emptyForm);
+    setBannerUrl(null);
+    setAdLink('');
+    setBannerError(null);
     setShowForm(true);
   };
 
@@ -67,6 +79,9 @@ export default function AdminLocations({ isOwner }) {
       latitude: loc.latitude ?? null,
       longitude: loc.longitude ?? null,
     });
+    setBannerUrl(loc.ad_config?.banner_url || null);
+    setAdLink(loc.ad_config?.link_url || '');
+    setBannerError(null);
     setShowForm(true);
   };
 
@@ -83,9 +98,58 @@ export default function AdminLocations({ isOwner }) {
       ...prev,
       latitude,
       longitude,
-      // Só sobrescreve o endereço se a busca trouxe um novo; clique no mapa não mexe no texto
       address: address !== null ? address : prev.address,
     }));
+  };
+
+  const handleBannerFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBannerError(null);
+
+    // Validação no frontend (revalidada no backend)
+    if (!ALLOWED_BANNER_TYPES.includes(file.type)) {
+      setBannerError('Formato inválido. Use JPG, PNG ou WebP.');
+      return;
+    }
+    if (file.size > MAX_BANNER_SIZE) {
+      setBannerError('Imagem muito grande. Máximo 2 MB.');
+      return;
+    }
+
+    setUploadingBanner(true);
+    try {
+      const fd = new FormData();
+      fd.append('banner', file);
+      const { data } = await api.post(
+        `/api/admin/locations/${editing.id}/banner`,
+        fd,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      );
+      setBannerUrl(data.banner_url);
+    } catch (err) {
+      setBannerError(err.response?.data?.error || 'Erro ao enviar imagem.');
+    } finally {
+      setUploadingBanner(false);
+    }
+  };
+
+  const handleSaveAdLink = async () => {
+    try {
+      await api.patch(`/api/admin/locations/${editing.id}/ad-link`, { link_url: adLink || null });
+    } catch (err) {
+      setBannerError('Erro ao salvar o link.');
+    }
+  };
+
+  const handleRemoveBanner = async () => {
+    if (!window.confirm('Remover o banner deste local?')) return;
+    try {
+      await api.delete(`/api/admin/locations/${editing.id}/banner`);
+      setBannerUrl(null);
+    } catch (err) {
+      setBannerError('Erro ao remover banner.');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -106,6 +170,8 @@ export default function AdminLocations({ isOwner }) {
       };
       if (editing) {
         await api.patch(`/api/admin/locations/${editing.id}`, payload);
+        // Salva o link do anúncio junto (se houver banner)
+        if (form.show_ads) await handleSaveAdLink();
       } else {
         await api.post('/api/admin/locations', payload);
       }
@@ -352,6 +418,72 @@ export default function AdminLocations({ isOwner }) {
                   Exibir publicidade após o login
                 </label>
               </div>
+
+              {/* Seção de publicidade — só ao editar (precisa do ID do local) e com show_ads ligado */}
+              {form.show_ads && editing && (
+                <div className="border-t pt-4">
+                  <p className="text-sm font-medium text-spotnicik-dark mb-3">Banner de publicidade</p>
+
+                  {bannerUrl && (
+                    <div className="mb-3">
+                      <img
+                        src={bannerUrl}
+                        alt="Banner atual"
+                        className="w-full rounded-lg border border-gray-200"
+                        style={{ aspectRatio: '16 / 9', objectFit: 'cover' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemoveBanner}
+                        className="mt-2 text-xs text-red-600 hover:underline"
+                      >
+                        Remover banner
+                      </button>
+                    </div>
+                  )}
+
+                  <label className="block text-xs font-medium text-spotnicik-dark mb-1">
+                    {bannerUrl ? 'Trocar imagem' : 'Enviar imagem'} (JPG, PNG ou WebP · máx. 2 MB · ideal 16:9)
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handleBannerFile}
+                    disabled={uploadingBanner}
+                    className="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-spotnicik-primary file:text-white file:font-medium hover:file:bg-blue-700 file:cursor-pointer"
+                  />
+                  {uploadingBanner && (
+                    <p className="text-xs text-gray-500 mt-1">Enviando imagem...</p>
+                  )}
+                  {bannerError && (
+                    <p className="text-xs text-red-600 mt-1">{bannerError}</p>
+                  )}
+
+                  <div className="mt-3">
+                    <label className="block text-xs font-medium text-spotnicik-dark mb-1">
+                      Link ao clicar no banner (opcional)
+                    </label>
+                    <input
+                      type="url"
+                      value={adLink}
+                      onChange={(e) => setAdLink(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-spotnicik-primary"
+                      placeholder="https://sua-loja.com/promocao"
+                    />
+                    <p className="text-[11px] text-gray-400 mt-1">
+                      O link é salvo junto ao clicar em "Salvar".
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {form.show_ads && !editing && (
+                <div className="border-t pt-4">
+                  <p className="text-xs text-gray-500">
+                    💡 Salve o local primeiro. Depois, edite-o para enviar o banner de publicidade.
+                  </p>
+                </div>
+              )}
 
               <div className="flex gap-3 pt-2">
                 <button
